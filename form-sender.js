@@ -1,16 +1,9 @@
-/**
- * @param {Object} customOptions configuration. Contains next fields:
- * @param {string} customOptions.urlHost host of the server
- * @param {string} customOptions.paramDomain domain for the request
- * @param {Function} customOptions.getYaCounter function to retrieve a Yandex.Metric object
- * @param {jQuery} customOptions.fmRequest jQuery object of request form
- * @param {jQuery} customOptions.fmThanks jQuery object of answer form
- * @param {Function} customOptions.onOpenDialog callback, which is called before form is shown, receive next parameters:
- * @param {string} customOptions.onOpenDialog.title caption of the form
- * @param {string} customOptions.onOpenDialog.button caption of the button
- * @param {string} customOptions.onOpenDialog.description description of the form
- * @version 1.1.1
- * @constructor
+/*!
+ * Landing page CMS client-side app v2.0.0
+ *
+ * http://marketing-na100.ru/
+ *
+ * Copyright (c) 2015 Roman Proshin
  */
 var LPCMSApp = function (customOptions) {
     /**
@@ -78,27 +71,29 @@ var LPCMSApp = function (customOptions) {
         });
 
         $('form').each(function () {
+            $(this).find('[type=file]').change(function () {
+                if (this.files && this.files[0] && this.files[0].size > 25 * 1024 * 1024) {
+                    alert('Превышен размер файла! Максимальный допустимый размер - 25 мегабайт.');
+                    $(this).val(null);
+                }
+            });
             $(this).validate({
+                debug: true,
                 submitHandler: function (form) {
                     var $form = $(form);
-                    var data = {
-                        name: $form.find('[name=name]').val(),
-                        email: $form.find('[name=email]').val(),
-                        tel: retrieveComplexValue($form.find('[name=phone]')),
-                        type: $form.find('[name=type]').val(),
-                        comment: $form.find('[name=comment]').val()
-                    };
-                    if (options.paramDomain) {
-                        data.domain = options.paramDomain;
-                    }
-                    $.ajax({
-                        async: 'true',
-                        type: 'POST',
+                    /*var data = {};
+                     if (options.paramDomain) {
+                     data.domain = options.paramDomain;
+                     }*/
+                    var data = new FormData($(form)[0]);
+                    jQuery.ajax({
+                        url: options.urlHost + '/app/api/requests/new',
+                        data: data,
                         cache: false,
-                        url: options.urlHost + '/app/api/subscribe',
-                        data: $.param(data),
-                        crossDomain: true,
-                        success: function () {
+                        contentType: false,
+                        processData: false,
+                        type: 'POST',
+                        success: function (data) {
                             $.fancybox.close();
                             if (options.fmThanks) {
                                 $.fancybox({
@@ -112,6 +107,14 @@ var LPCMSApp = function (customOptions) {
                                 setTimeout(function () {
                                     $.fancybox.close();
                                 }, 3000);
+                            }
+                        },
+                        statusCode: {
+                            413: function () {
+                                alert('Превышен максимальный размер файла в 25 мегабайт!');
+                            },
+                            415: function() {
+                                alert('Неправильный формат файла! Разрешена отправка только изображений.');
                             }
                         }
                     });
