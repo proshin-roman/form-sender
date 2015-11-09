@@ -1,9 +1,19 @@
 /*!
- * Landing page CMS client-side app v2.0.0
+ * Landing page CMS client-side app v2.1.0
  *
  * http://marketing-na100.ru/
  *
+ * changes in v2.1.0:
+ * - uses a default bootstrap modal plugin to dial with dialogs
+ * - phone fields are required only
+ *
  * Copyright (c) 2015 Roman Proshin
+ */
+/**
+ * @param {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function,
+ * [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement),
+ * onOpenDialog: onOpenDialog}} customOptions
+ * @constructor
  */
 var LPCMSApp = function (customOptions) {
     /**
@@ -25,21 +35,12 @@ var LPCMSApp = function (customOptions) {
             }
         },
         /**
-         * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement), onOpenDialog: onOpenDialog}}
+         * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement), onOpenDialog: function}}
          */
         options = $.extend({}, defaultOptions, customOptions);
 
     function init() {
-        $('[data-type]').each(function (index, item) {
-            $(item).fancybox({
-                type: 'inline',
-                content: $(options.fmRequest),
-                padding: 15,
-                margin: 15,
-                openEffect: 'fade',
-                closeEffect: 'fade'
-            });
-        }).click(function (e) {
+        $('[data-type]').click(function (e) {
             e.preventDefault();
 
             var $this = $(this);
@@ -66,6 +67,8 @@ var LPCMSApp = function (customOptions) {
             }
 
             options.onOpenDialog(title, btn, description);
+
+            $(options.fmRequest).modal('show');
 
             return false;
         });
@@ -94,18 +97,18 @@ var LPCMSApp = function (customOptions) {
                         processData: false,
                         type: 'POST',
                         success: function (data) {
-                            $.fancybox.close();
+                            $(options.fmRequest).modal('hide');
+
+                            // fix a problem when form was submitted from other modal
+                            var otherCurrentModalId = jQuery('.modal.in').attr('id');
+                            if (otherCurrentModalId) {
+                                jQuery('#' + otherCurrentModalId).modal('hide');
+                            }
+
                             if (options.fmThanks) {
-                                $.fancybox({
-                                    type: 'inline',
-                                    content: $(options.fmThanks),
-                                    padding: 15,
-                                    margin: 15,
-                                    openEffect: 'fade',
-                                    closeEffect: 'fade'
-                                });
+                                $(options.fmThanks).modal('show');
                                 setTimeout(function () {
-                                    $.fancybox.close();
+                                    $(options.fmThanks).modal('hide');
                                 }, 3000);
                             }
                         },
@@ -113,7 +116,7 @@ var LPCMSApp = function (customOptions) {
                             413: function () {
                                 alert('Превышен максимальный размер файла в 25 мегабайт!');
                             },
-                            415: function() {
+                            415: function () {
                                 alert('Неправильный формат файла! Разрешена отправка только изображений.');
                             }
                         }
@@ -131,45 +134,19 @@ var LPCMSApp = function (customOptions) {
                     $(element).attr('title', $(error).text());
                 },
                 rules: {
-                    'name': 'required',
                     'phone': 'required',
-                    'email': {
-                        'required': true,
-                        'email': true
-                    }
+                    'email': 'email'
                 },
                 messages: {
-                    'name': {
-                        'required': 'Пожалуйста, укажите Ваше имя'
-                    },
                     'phone': {
                         'required': 'Пожалуйста, укажите Ваш телефонный номер'
                     },
                     'email': {
-                        'required': 'Пожалуйста, укажите адрес Вашей электронной почты',
                         'email': 'Пожалуйста, укажите корректный адрес электронной почты'
                     }
                 }
             });
         });
-    }
-
-    /**
-     * @param {Object|Array} inputOrArrayOfInputs
-     * @returns {String}
-     */
-    function retrieveComplexValue(inputOrArrayOfInputs) {
-        var tmp = $(inputOrArrayOfInputs);
-        if (tmp.length > 1) {
-            var complexValue = '';
-            tmp.each(function (index, item) {
-                complexValue += $(item).val();
-            });
-            return complexValue;
-        } else if (tmp.length > 0) {
-            return tmp.val();
-        }
-        return null;
     }
 
     init();
