@@ -1,14 +1,25 @@
 /**
- * @param {{[urlHost]: string, [paramDomain]: null, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement), [onOpenDialog]: onOpenDialog}} [customOptions]
+ * @param {Object} customOptions configuration. Contains next fields:
+ * @param {string} customOptions.urlHost host of the server
+ * @param {string} customOptions.paramDomain domain for the request
+ * @param {Function} customOptions.getYaCounter function to retrieve a Yandex.Metric object
+ * @param {jQuery} customOptions.fmRequest jQuery object of request form
+ * @param {jQuery} customOptions.fmThanks jQuery object of answer form
+ * @param {Function} customOptions.onOpenDialog callback, which is called before form is shown, receive next parameters:
+ * @param {string} customOptions.onOpenDialog.title caption of the form
+ * @param {string} customOptions.onOpenDialog.button caption of the button
+ * @param {string} customOptions.onOpenDialog.description description of the form
+ * @version 1.1.1
  * @constructor
  */
 var LPCMSApp = function (customOptions) {
     /**
-     * @type {{urlHost: string, paramDomain: null, fmRequest: (*|jQuery|HTMLElement), fmThanks: (*|jQuery|HTMLElement), onOpenDialog: onOpenDialog}}
+     * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement), onOpenDialog: onOpenDialog}}
      */
     var defaultOptions = {
             urlHost: 'http://' + location.host,
             paramDomain: null,
+            getYaCounter: null,
             fmRequest: $('#fmRequest'),
             fmThanks: $('#fmThanks'),
             /**
@@ -21,7 +32,7 @@ var LPCMSApp = function (customOptions) {
             }
         },
         /**
-         * @type {{urlHost: string, paramDomain: null, fmRequest: (*|jQuery|HTMLElement), fmThanks: (*|jQuery|HTMLElement), onOpenDialog: onOpenDialog}}
+         * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement), onOpenDialog: onOpenDialog}}
          */
         options = $.extend({}, defaultOptions, customOptions);
 
@@ -42,11 +53,24 @@ var LPCMSApp = function (customOptions) {
             var title = $this.data('title');
             var type = $this.data('type');
             var btn = $this.data('btn');
+            var yagoal = $this.data('yagoal');
+            var optionalNames = [];
+            if ($this.data('optional-names')) {
+                optionalNames.push($this.data('optional-names'));
+            }
             var description = '';
 
             var fmRequest = options.fmRequest;
             $(fmRequest).find('input').val('');
-            $(fmRequest).find('input[type=hidden]').val(type);
+            $(fmRequest).find('.ignore').removeClass('ignore');
+            $(fmRequest).find('input[name=type]').val(type);
+            $(fmRequest).find('input[name=yagoal]').val(yagoal);
+
+            for (var i in optionalNames) {
+                if (optionalNames.hasOwnProperty(i)) {
+                    $(fmRequest).find('input[name=' + optionalNames[i] + ']').addClass('ignore');
+                }
+            }
 
             options.onOpenDialog(title, btn, description);
 
@@ -61,7 +85,8 @@ var LPCMSApp = function (customOptions) {
                         name: $form.find('[name=name]').val(),
                         email: $form.find('[name=email]').val(),
                         tel: retrieveComplexValue($form.find('[name=phone]')),
-                        type: $form.find('[name=type]').val()
+                        type: $form.find('[name=type]').val(),
+                        comment: $form.find('[name=comment]').val()
                     };
                     if (options.paramDomain) {
                         data.domain = options.paramDomain;
@@ -75,21 +100,30 @@ var LPCMSApp = function (customOptions) {
                         crossDomain: true,
                         success: function () {
                             $.fancybox.close();
-                            $.fancybox({
-                                type: 'inline',
-                                content: $(options.fmThanks),
-                                padding: 15,
-                                margin: 15,
-                                openEffect: 'fade',
-                                closeEffect: 'fade'
-                            });
-                            setTimeout(function () {
-                                $.fancybox.close();
-                            }, 3000);
+                            if (options.fmThanks) {
+                                $.fancybox({
+                                    type: 'inline',
+                                    content: $(options.fmThanks),
+                                    padding: 15,
+                                    margin: 15,
+                                    openEffect: 'fade',
+                                    closeEffect: 'fade'
+                                });
+                                setTimeout(function () {
+                                    $.fancybox.close();
+                                }, 3000);
+                            }
                         }
                     });
+                    try {
+                        var yaGoal = $form.find('[name=yagoal]').val();
+                        options.getYaCounter && yaGoal && options.getYaCounter().reachGoal && options.getYaCounter().reachGoal(yaGoal);
+                    } catch (e) {
+                        window.console && window.console.error('Can not send a Yandex Goal', e);
+                    }
                     return false;
                 },
+                ignore: ".ignore",
                 errorPlacement: function (error, element) {
                     $(element).attr('title', $(error).text());
                 },
