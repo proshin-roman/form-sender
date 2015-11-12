@@ -1,23 +1,20 @@
 /*!
- * Landing page CMS client-side app v2.1.0
+ * Landing page CMS client-side app v2.1.1
  *
- * http://marketing-na100.ru/
- *
- * changes in v2.1.0:
- * - uses a default bootstrap modal plugin to dial with dialogs
- * - phone fields are required only
+ * changes in v2.1.1:
+ * - option fmThanks can be a function, so it will be called when data is sent
  *
  * Copyright (c) 2015 Roman Proshin
  */
 /**
  * @param {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function,
- * [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement),
+ * [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|Function),
  * onOpenDialog: onOpenDialog}} customOptions
  * @constructor
  */
 var LPCMSApp = function (customOptions) {
     /**
-     * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement), onOpenDialog: onOpenDialog}}
+     * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|Function), onOpenDialog: onOpenDialog}}
      */
     var defaultOptions = {
             urlHost: 'http://' + location.host,
@@ -35,7 +32,7 @@ var LPCMSApp = function (customOptions) {
             }
         },
         /**
-         * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement), onOpenDialog: function}}
+         * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|Function), onOpenDialog: function}}
          */
         options = $.extend({}, defaultOptions, customOptions);
 
@@ -84,10 +81,6 @@ var LPCMSApp = function (customOptions) {
                 debug: true,
                 submitHandler: function (form) {
                     var $form = $(form);
-                    /*var data = {};
-                     if (options.paramDomain) {
-                     data.domain = options.paramDomain;
-                     }*/
                     var data = new FormData($(form)[0]);
                     jQuery.ajax({
                         url: options.urlHost + '/app/api/requests/new',
@@ -106,10 +99,14 @@ var LPCMSApp = function (customOptions) {
                             }
 
                             if (options.fmThanks) {
-                                $(options.fmThanks).modal('show');
-                                setTimeout(function () {
-                                    $(options.fmThanks).modal('hide');
-                                }, 3000);
+                                if (typeof options.fmThanks === 'function') {
+                                    options.fmThanks();
+                                } else {
+                                    $(options.fmThanks).modal('show');
+                                    setTimeout(function () {
+                                        $(options.fmThanks).modal('hide');
+                                    }, 3000);
+                                }
                             }
                         },
                         statusCode: {
