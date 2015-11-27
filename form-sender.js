@@ -1,27 +1,23 @@
 /*!
- * Landing page CMS client-side app v2.1.1
- *
- * changes in v2.1.1:
- * - option fmThanks can be a function, so it will be called when data is sent
+ * Form sender v3.0.0
  *
  * Copyright (c) 2015 Roman Proshin
  */
 /**
- * @param {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function,
- * [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|Function),
- * onOpenDialog: onOpenDialog}} customOptions
+ * @param {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|function), [onSendRequest]: function, onOpenDialog: function}} customOptions
  * @constructor
  */
-var LPCMSApp = function (customOptions) {
+var FormSender = function (customOptions) {
     /**
-     * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|Function), onOpenDialog: onOpenDialog}}
+     * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|function), [onSendRequest]: function, onOpenDialog: function}}
      */
     var defaultOptions = {
-            urlHost: 'http://' + location.host,
-            paramDomain: null,
+            url: 'http://' + location.host + '/app/api/requests/new',
+            referrer: location.host,
             getYaCounter: null,
             fmRequest: $('#fmRequest'),
-            fmThanks: $('#fmThanks'),
+            onSendRequest: function () {
+            },
             /**
              * @callback
              * @param {String} title a title of dialog
@@ -32,7 +28,7 @@ var LPCMSApp = function (customOptions) {
             }
         },
         /**
-         * @type {{[urlHost]: string, [paramDomain]: null, [getYaCounter]: Function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|Function), onOpenDialog: function}}
+         * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|function), [onSendRequest]: function, onOpenDialog: function}}
          */
         options = $.extend({}, defaultOptions, customOptions);
 
@@ -78,12 +74,13 @@ var LPCMSApp = function (customOptions) {
                 }
             });
             $(this).validate({
-                debug: true,
                 submitHandler: function (form) {
                     var $form = $(form);
                     var data = new FormData($(form)[0]);
+                    data.append('referrer', options.referrer);
+
                     jQuery.ajax({
-                        url: options.urlHost + '/app/api/requests/new',
+                        url: options.url,
                         data: data,
                         cache: false,
                         contentType: false,
@@ -91,23 +88,7 @@ var LPCMSApp = function (customOptions) {
                         type: 'POST',
                         success: function (data) {
                             $(options.fmRequest).modal('hide');
-
-                            // fix a problem when form was submitted from other modal
-                            var otherCurrentModalId = jQuery('.modal.in').attr('id');
-                            if (otherCurrentModalId) {
-                                jQuery('#' + otherCurrentModalId).modal('hide');
-                            }
-
-                            if (options.fmThanks) {
-                                if (typeof options.fmThanks === 'function') {
-                                    options.fmThanks();
-                                } else {
-                                    $(options.fmThanks).modal('show');
-                                    setTimeout(function () {
-                                        $(options.fmThanks).modal('hide');
-                                    }, 3000);
-                                }
-                            }
+                            options.onSendRequest && options.onSendRequest();
                         },
                         statusCode: {
                             413: function () {
