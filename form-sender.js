@@ -1,5 +1,5 @@
 /*!
- * Form sender v3.0.0
+ * Form sender v3.1.0
  *
  * Copyright (c) 2015 Roman Proshin
  */
@@ -20,11 +20,10 @@ var FormSender = function (customOptions) {
             },
             /**
              * @callback
-             * @param {String} title a title of dialog
-             * @param {String} button a button text
-             * @param {String} [description] a description
+             * @param {jQuery} modal instance
+             * @param {jQuery} button instance
              */
-            onOpenDialog: function (title, button, description) {
+            onOpenDialog: function (modal, button) {
             }
         },
         /**
@@ -32,22 +31,26 @@ var FormSender = function (customOptions) {
          */
         options = $.extend({}, defaultOptions, customOptions);
 
-    function init() {
-        $('[data-type]').click(function (e) {
+    /**
+     * Rebind listeners to existing buttons. It might be helpful when you create buttons dynamically.
+     */
+    this.rebindButtons = function () {
+        bindButtons();
+    };
+
+    function bindButtons() {
+        $('[data-type]').unbind().click(function (e) {
             e.preventDefault();
 
             var $this = $(this);
-            var title = $this.data('title');
             var type = $this.data('type');
-            var btn = $this.data('btn');
             var yagoal = $this.data('yagoal');
+            var modal = $this.data('modal');
             var optionalNames = [];
             if ($this.data('optional-names')) {
                 optionalNames.push($this.data('optional-names'));
             }
-            var description = '';
-
-            var fmRequest = options.fmRequest;
+            var fmRequest = modal ? $('#' + modal) : options.fmRequest;
             $(fmRequest).find('input').val('');
             $(fmRequest).find('.ignore').removeClass('ignore');
             $(fmRequest).find('input[name=type]').val(type);
@@ -59,13 +62,16 @@ var FormSender = function (customOptions) {
                 }
             }
 
-            options.onOpenDialog(title, btn, description);
+            options.onOpenDialog(fmRequest, $this);
 
-            $(options.fmRequest).modal('show');
+            $(fmRequest).modal();
 
             return false;
         });
+    }
 
+
+    function bindForms() {
         $('form').each(function () {
             $(this).find('[type=file]').change(function () {
                 if (this.files && this.files[0] && this.files[0].size > 25 * 1024 * 1024) {
@@ -127,5 +133,6 @@ var FormSender = function (customOptions) {
         });
     }
 
-    init();
+    bindButtons();
+    bindForms();
 };
