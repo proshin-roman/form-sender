@@ -1,5 +1,5 @@
 /*!
- * Form sender v3.1.0
+ * Form sender v3.1.1
  *
  * Copyright (c) 2015 Roman Proshin
  */
@@ -95,6 +95,7 @@ var FormSender = function (customOptions) {
                         success: function (data) {
                             $(options.fmRequest).modal('hide');
                             options.onSendRequest && options.onSendRequest();
+                            $form.find('input[type=text]').val('');
                         },
                         statusCode: {
                             413: function () {
