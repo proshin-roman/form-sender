@@ -1,21 +1,22 @@
 /*!
- * Form sender v3.1.2
+ * Form sender v3.1.3
  *
  * Copyright (c) 2015 Roman Proshin
  */
 /**
- * @param {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|function), [onSendRequest]: function, onOpenDialog: function}} customOptions
+ * @param {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function}} customOptions
  * @constructor
  */
 var FormSender = function (customOptions) {
     /**
-     * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|function), [onSendRequest]: function, onOpenDialog: function}}
+     * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function}}
      */
     var defaultOptions = {
             url: 'http://' + location.host + '/app/api/requests/new',
             referrer: location.host,
             getYaCounter: null,
             fmRequest: $('#fmRequest'),
+            modalClassToCenter: '.modal',
             onSendRequest: function () {
             },
             /**
@@ -27,7 +28,7 @@ var FormSender = function (customOptions) {
             }
         },
         /**
-         * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [fmThanks]: (*|jQuery|HTMLElement|function), [onSendRequest]: function, onOpenDialog: function}}
+         * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function}}
          */
         options = $.extend({}, defaultOptions, customOptions);
 
@@ -155,6 +156,30 @@ var FormSender = function (customOptions) {
         });
     }
 
+    function centerModals() {
+        function centerModals($element) {
+            var $modals;
+            if ($element.length) {
+                $modals = $element;
+            } else {
+                $modals = $(options.modalClassToCenter + ':visible');
+            }
+            $modals.each(function (i) {
+                var $clone = $(this).clone().css('display', 'block').appendTo('body');
+                var top = Math.round(($clone.height() - $clone.find('.modal-content').height()) / 2);
+                top = top > 0 ? top : 0;
+                $clone.remove();
+                $(this).find('.modal-content').css("margin-top", top);
+            });
+        }
+
+        $(options.modalClassToCenter).on('show.bs.modal', function (e) {
+            centerModals($(this));
+        });
+        $(window).on('resize', centerModals);
+    }
+
     bindButtons();
     bindForms();
+    centerModals();
 };
