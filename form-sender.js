@@ -1,5 +1,5 @@
 /*!
- * Form sender v3.1.1
+ * Form sender v3.1.2
  *
  * Copyright (c) 2015 Roman Proshin
  */
@@ -38,6 +38,9 @@ var FormSender = function (customOptions) {
         bindButtons();
     };
 
+    /**
+     * Bind onclick listeners on each item with 'data-type' attribute
+     */
     function bindButtons() {
         $('[data-type]').unbind().click(function (e) {
             e.preventDefault();
@@ -53,6 +56,10 @@ var FormSender = function (customOptions) {
             var fmRequest = modal ? $('#' + modal) : options.fmRequest;
             $(fmRequest).find('input').val('');
             $(fmRequest).find('.ignore').removeClass('ignore');
+
+            checkAndCreateIfNotExists(fmRequest, 'type');
+            checkAndCreateIfNotExists(fmRequest, 'yagoal');
+
             $(fmRequest).find('input[name=type]').val(type);
             $(fmRequest).find('input[name=yagoal]').val(yagoal);
 
@@ -70,7 +77,21 @@ var FormSender = function (customOptions) {
         });
     }
 
+    /**
+     * Check if the given forms contains an input with the given name and create it if doesn't contain
+     *
+     * @param {jQuery} $form
+     * @param {String} inputName
+     */
+    function checkAndCreateIfNotExists($form, inputName) {
+        if ($($form).find('input[name=' + inputName + ']').length === 0) {
+            $($form).append($('<input/>', {type: 'hidden', name: inputName}));
+        }
+    }
 
+    /**
+     * Bind onsubmit listeners and validators on each form
+     */
     function bindForms() {
         $('form').each(function () {
             $(this).find('[type=file]').change(function () {
