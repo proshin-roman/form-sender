@@ -1,15 +1,15 @@
 /*!
- * Form sender v3.1.3
+ * Form sender v3.2.0
  *
  * Copyright (c) 2015 Roman Proshin
  */
 /**
- * @param {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function}} customOptions
+ * @param {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function, [getSearchQuery]: function}} customOptions
  * @constructor
  */
 var FormSender = function (customOptions) {
     /**
-     * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function}}
+     * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function, getSearchQuery: function}}
      */
     var defaultOptions = {
             url: 'http://' + location.host + '/app/api/requests/new',
@@ -25,10 +25,13 @@ var FormSender = function (customOptions) {
              * @param {jQuery} button instance
              */
             onOpenDialog: function (modal, button) {
+            },
+            getSearchQuery: function() {
+                return location.search;
             }
         },
         /**
-         * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function}}
+         * @type {{[url]: string, [referrer]: null, [getYaCounter]: function, [fmRequest]: (*|jQuery|HTMLElement), [modalClassToCenter]: string, [onSendRequest]: function, onOpenDialog: function, getSearchQuery: function}}
          */
         options = $.extend({}, defaultOptions, customOptions);
 
@@ -106,6 +109,7 @@ var FormSender = function (customOptions) {
                     var $form = $(form);
                     var data = new FormData($(form)[0]);
                     data.append('referrer', options.referrer);
+                    data.append('query', options.getSearchQuery());
 
                     jQuery.ajax({
                         url: options.url,

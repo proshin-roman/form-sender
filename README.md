@@ -30,6 +30,7 @@ new FormSender({});
 | modalClassToCenter | string | Нет | .modal | CSS класс для поиска модальных окон, которые необходимо центрировать |
 | onSendRequest | function | Да | | Callback функция, которая вызывается по завершению запроса |
 | onOpenDialog | function | Да | | Callback функция, которая вызывается после клика по элементу data-type, но перед отображением модального окна |
+| getSearchQuery | function | Нет | | Функция, возвращающая query часть URL текущей страницы. По умолчанию используется location.search |
 
 Пример инициализации скрипта:
 ```javascript
@@ -66,3 +67,4 @@ $(function () {
 * 3.1.1 - http://cdn.rawgit.com/proshin-roman/form-sender/v.3.1.1/form-sender.min.js
 * 3.1.2 - http://cdn.rawgit.com/proshin-roman/form-sender/v.3.1.2.r/form-sender.min.js
 * 3.1.3 - http://cdn.rawgit.com/proshin-roman/form-sender/v.3.1.3/form-sender.min.js
+* 3.2.0 - http://cdn.rawgit.com/proshin-roman/form-sender/v.3.2.0/form-sender.min.js
