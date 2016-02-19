@@ -1,5 +1,5 @@
 /*!
- * Form sender v3.2.0
+ * Form sender v3.2.1
  *
  * Copyright (c) 2015 Roman Proshin
  */
@@ -88,8 +88,8 @@ var FormSender = function (customOptions) {
      * @param {String} inputName
      */
     function checkAndCreateIfNotExists($form, inputName) {
-        if ($($form).find('input[name=' + inputName + ']').length === 0) {
-            $($form).append($('<input/>', {type: 'hidden', name: inputName}));
+        if ($($form).find('form input[name=' + inputName + ']').length === 0) {
+            $($form).find('form').append($('<input/>', {type: 'hidden', name: inputName}));
         }
     }
 
