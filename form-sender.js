@@ -1,5 +1,5 @@
 /*!
- * Form sender v4.0.0
+ * Form sender v4.0.1
  *
  * Copyright (c) 2015 Roman Proshin
  */
@@ -223,14 +223,17 @@ var FormSender = function (customOptions) {
          * @returns {Array} parsed UTM labels
          */
         this.getLabels = function () {
-            var params = [];
-
             if (typeof url !== 'string') {
                 url = '' + url;
             }
             if (url.indexOf('?') > -1) {
                 url = url.slice(url.indexOf('?') + 1);
+            } else {
+                // there is no query string in the given URL
+                return [];
             }
+
+            var params = [];
             var parameters = url.split('&');
             for (var i in parameters) {
                 if (parameters.hasOwnProperty(i)) {
