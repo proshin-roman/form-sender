@@ -1,5 +1,5 @@
 /*!
- * Form sender v3.2.1
+ * Form sender v4.0.0
  *
  * Copyright (c) 2015 Roman Proshin
  */
@@ -13,7 +13,7 @@ var FormSender = function (customOptions) {
      */
     var defaultOptions = {
             url: 'http://' + location.host + '/app/api/requests/new',
-            referrer: location.host,
+            referrer: location.hostname,
             getYaCounter: null,
             fmRequest: $('#fmRequest'),
             modalClassToCenter: '.modal',
@@ -26,7 +26,7 @@ var FormSender = function (customOptions) {
              */
             onOpenDialog: function (modal, button) {
             },
-            getSearchQuery: function() {
+            getSearchQuery: function () {
                 return location.search;
             }
         },
@@ -107,36 +107,60 @@ var FormSender = function (customOptions) {
             $(this).validate({
                 submitHandler: function (form) {
                     var $form = $(form);
-                    var data = new FormData($(form)[0]);
-                    data.append('referrer', options.referrer);
-                    data.append('query', options.getSearchQuery());
-
-                    jQuery.ajax({
-                        url: options.url,
-                        data: data,
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        type: 'POST',
-                        success: function (data) {
-                            $(options.fmRequest).modal('hide');
-                            options.onSendRequest && options.onSendRequest();
-                            $form.find('input[type=text]').val('');
-                        },
-                        statusCode: {
-                            413: function () {
-                                alert('Превышен максимальный размер файла в 25 мегабайт!');
-                            },
-                            415: function () {
-                                alert('Неправильный формат файла! Разрешена отправка только изображений.');
-                            }
-                        }
-                    });
                     try {
-                        var yaGoal = $form.find('[name=yagoal]').val();
-                        options.getYaCounter && yaGoal && options.getYaCounter().reachGoal && options.getYaCounter().reachGoal(yaGoal);
+                        var data = new FormData($(form)[0]);
+                        var phone = '';
+                        if ($form.find('input[name=phone]').length > 1) {
+                            $form.find('input[name=phone]').each(function () {
+                                phone += $(this).val();
+                            })
+                        } else {
+                            phone = $form.find('input[name=phone]').val()
+                        }
+
+                        var request = {
+                            name: $form.find('input[name=name]').val(),
+                            email: $form.find('input[name=email]').val(),
+                            phone: phone,
+                            type: $form.find('input[name=type]').val(),
+                            referrer: options.referrer,
+                            query: location.search,
+                            fields: new UtmLabelsParser(location).getLabels()
+                        };
+
+                        data.append('request', $.toJSON(request));
+
+                        $.ajax({
+                            url: options.url,
+                            data: data,
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            type: 'POST',
+                            success: function () {
+                                $(options.fmRequest).modal('hide');
+                                options.onSendRequest && options.onSendRequest();
+                                $form.find('input[type=text]').val('');
+                            },
+                            statusCode: {
+                                413: function () {
+                                    alert('Превышен максимальный размер файла в 25 мегабайт!');
+                                },
+                                415: function () {
+                                    alert('Неправильный формат файла! Разрешена отправка только изображений.');
+                                }
+                            }
+                        });
                     } catch (e) {
-                        window.console && window.console.error('Can not send a Yandex Goal', e);
+                        console.log(e);
+                        return false;
+                    } finally {
+                        try {
+                            var yaGoal = $form.find('[name=yagoal]').val();
+                            options.getYaCounter && yaGoal && options.getYaCounter().reachGoal && options.getYaCounter().reachGoal(yaGoal);
+                        } catch (e) {
+                            window.console && window.console.error('Can not send a Yandex Goal', e);
+                        }
                     }
                     return false;
                 },
@@ -186,4 +210,60 @@ var FormSender = function (customOptions) {
     bindButtons();
     bindForms();
     centerModals();
+
+    /**
+     * Parse the given url and retrieve all UTM labels
+     * @param {String} url URL to parse
+     * @constructor
+     */
+    function UtmLabelsParser(url) {
+
+        /**
+         * Get an object with parsed UTM labels
+         * @returns {Array} parsed UTM labels
+         */
+        this.getLabels = function () {
+            var params = [];
+
+            if (typeof url !== 'string') {
+                url = '' + url;
+            }
+            if (url.indexOf('?') > -1) {
+                url = url.slice(url.indexOf('?') + 1);
+            }
+            var parameters = url.split('&');
+            for (var i in parameters) {
+                if (parameters.hasOwnProperty(i)) {
+                    var param = parameters[i];
+                    var key = getNameOfUtmLabel(param.split('=')[0]);
+                    params.push({name: key, value: decodeURIComponent(param.split('=')[1])});
+                }
+            }
+            return params;
+        };
+
+        /**
+         * Find a human readable UTM name
+         * @param {String} utmLabel UTM label
+         * @returns {String} human readable name of the given UTM label (if found)
+         */
+        function getNameOfUtmLabel(utmLabel) {
+            if (utmLabelNames[utmLabel]) {
+                return utmLabelNames[utmLabel] + ' (' + utmLabel + ')';
+            }
+            return utmLabel;
+        }
+
+        /**
+         * Human readable names of the UTM labels
+         * @type {{utm_source: string, utm_campaign: string, utm_medium: string, utm_term: string, utm_content: string}}
+         */
+        var utmLabelNames = {
+            'utm_source': 'Источник перехода',
+            'utm_campaign': 'Рекламная кампания',
+            'utm_medium': 'Тип трафика',
+            'utm_term': 'Ключевая фраза',
+            'utm_content': 'Доп. информация'
+        };
+    }
 };
