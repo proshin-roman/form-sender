@@ -10,6 +10,7 @@
 * jQuery 1.x
 * jQuery validate plugin 1.13.x
 * Bootstrap 3.x
+* jquery-json [https://github.com/Krinkle/jquery-json]
 
 Кроме того, модальные окна должны быть реализованы и инициализированы с использованием фреймворка Bootstrap.
 
