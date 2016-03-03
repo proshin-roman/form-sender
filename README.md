@@ -52,22 +52,22 @@ new FormSender({});
 ```javascript
 $(function () {
   new FormSender({
-    fmRequest: $('#myModal'),
+    url: 'http://site-url/app/api/requests/new',
+    fmRequest: $('#fmRequest'),
     onSendRequest: function () {
-      $('#fmThanks').modal('show');
-        setTimeout(function () {
-          $('#fmThanks').modal('hide')
-        }, 3000);
-    },
-    onOpenDialog: function (modal, button) {
-      $(modal).find('.title').html(button.data('title') || 'Заголовок по умолчанию');
-      $(modal).find('.submit-button').text(button.data('btn') || 'Отправить заявку');
+      $('#fmThanks').modal();
+      setTimeout(function () {
+        $('#fmThanks').modal('hide');
+      }, 3000);
     },
     getYaCounter: function () {
-      return yaCounter123456789;
+      return yaCounterObject;
     },
-    url: 'http://backend-server-domain.ru/app/api/requests/new',
-    referrer: 'landing-page-domain.ru'
+    onOpenDialog: function (modal, button) {
+      var $popup = $(modal);
+      $(button).data('title') && $popup.find('.popup-title').text($(button).data('title'));
+      $(button).data('btn') && $popup.find('button').text($(button).data('btn'));
+    }
   });
 });
 ```
