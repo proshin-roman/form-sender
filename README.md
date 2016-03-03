@@ -8,13 +8,28 @@
 ## Требования
 Для корректной работы скрипта на странице должны присутствовать:
 * jQuery 1.x
+```html
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+```
 * jQuery validate plugin 1.13.x
+```html
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.13.1/jquery.validate.min.js"></script>
+```
 * Bootstrap 3.x
+```html
+<script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
+```
 * jquery-json [https://github.com/Krinkle/jquery-json]
+```html
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-json/2.5.1/jquery.json.min.js"></script>
+```
 
 Кроме того, модальные окна должны быть реализованы и инициализированы с использованием фреймворка Bootstrap.
 
 ## Как подключить
+```html
+<script src="http://cdn.rawgit.com/proshin-roman/form-sender/v.4.0.1/form-sender.min.js"></script>
+```
 Скрипт инициализируется созданием инстанса:
 ```javascript
 new FormSender({});
